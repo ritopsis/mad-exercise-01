@@ -3,10 +3,47 @@
  */
 package at.ac.fhcampuswien
 
+import java.lang.IllegalArgumentException
+
 class App {
     // Game logic for a number guessing game
+
     fun playNumberGame(digitsToGuess: Int = 4) {
-        //TODO: build a menu which calls the functions and works with the return values
+        try {
+            var playing = true
+            var goal = generateRandomNonRepeatingNumber(digitsToGuess)
+        println("""
+    Welcome to the Game :)
+    The game is a simple number guessing game.
+    The number to guess doesn't contain repeating digits (valid digits are 1-9)
+    You win if you guess the correct digits in the correct order.
+    In each round, you will get feedback about the number of correct digits and the number of correct digits in the correct position.
+    """)
+            do{
+                println("Enter a $digitsToGuess long digit with no repeating digits from 1-9")
+                var guess = readln()
+                if(guess.toIntOrNull() == null)
+                {
+                    println("No valid input!")
+                    continue
+                }
+                var result = checkUserInputAgainstGeneratedNumber(guess.toInt(),goal)
+                if (result.m == digitsToGuess){
+                    playing = false
+                    println("You win!!! The number was $goal.")
+                }
+                else
+                {
+                    println("You guessed ${result.n} correct digits with ${result.m} in the correct position")
+                }
+            }
+            while(playing);
+        }catch (e:IllegalArgumentException) // print message from generateRandomNonRepeatingNumber or checkUserInputAgainstGeneratedNumber if Exception is thrown
+        {
+            println(e.message)
+
+        }
+
     }
 
     /**
@@ -24,8 +61,14 @@ class App {
      * @throws IllegalArgumentException if the length is more than 9 or less than 1.
      */
     val generateRandomNonRepeatingNumber: (Int) -> Int = { length ->
-        //TODO implement the function
-        0   // return value is a placeholder
+
+        if(length !in 1..9) // checking if length is between 1-9
+        {
+            throw IllegalArgumentException("The provided length $length to generate a random non repeating number is not allowed!")
+        }
+        val randomNumbers = (1..9).shuffled().take(length) // https://www.baeldung.com/kotlin/random-number
+        val number = randomNumbers.joinToString("").toInt() // joins all numbers together with "" as separation -> converted to int
+        number// return
     }
 
     /**
@@ -45,12 +88,29 @@ class App {
      * @throws IllegalArgumentException if the inputs do not have the same number of digits.
      */
     val checkUserInputAgainstGeneratedNumber: (Int, Int) -> CompareResult = { input, generatedNumber ->
-        //TODO implement the function
-        CompareResult(0, 0)   // return value is a placeholder
+        var n = 0
+        var m = 0
+        val guess = input.toString()
+        val goal = generatedNumber.toString()
+        var unique = mutableListOf<Char>() // for duplicate digits in guessed number
+        if(guess.length != goal.length) // check if guessed number has duplicate digits (guess.toSet().size != guess.length), problem with tester therefore taken out https://kotlinandroid.org/kotlin/kotlin-get-unique-characters-in-a-string/
+        {
+            throw IllegalArgumentException("The input was invalid: You entered a ${guess.length} long digit instead of a ${goal.length} long digit!")
+        }
+        for (i in guess.indices) {
+            if (goal.contains(guess[i]) && !unique.contains(guess[i])) {
+                unique.add(guess[i])
+                n++
+            }
+            if (guess[i] == goal[i]) {
+                m++
+            }
+        }
+        CompareResult(n, m)   // return value is a placeholder
     }
 }
 
 fun main() {
-    println("Hello World!")
-    // TODO: call the App.playNumberGame function with and without default arguments
+    App().playNumberGame(digitsToGuess = 5)
+    App().playNumberGame()
 }
